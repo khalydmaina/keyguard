@@ -356,13 +356,17 @@ def scan_paths(targets: list[str], ignore: list[str]) -> tuple[list[Finding], in
             files.append(target)
         else:
             raise ScanError(f"no such file or folder: {target}")
+    try:
+        tracked = set(git("ls-files", "-z").decode("utf-8", "surrogateescape").split("\0"))
+    except ScanError:
+        tracked = set()  # not in a git repo
     findings, count = [], 0
     for path in files:
         data = read_file(path)
         if data is not None:
             count += 1
             shown = os.path.relpath(path)
-            findings += scan_blob(shown, data, ignore, in_git=False)
+            findings += scan_blob(shown, data, ignore, in_git=shown in tracked)
     return findings, count
 
 

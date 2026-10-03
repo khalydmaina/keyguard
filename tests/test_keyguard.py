@@ -284,6 +284,12 @@ class GitTest(unittest.TestCase):
         self.assertIn("untracked.txt:1", text)
         self.assertIn("sub/id.json:1", text)
 
+    def test_env_file_rule_in_paths_mode_needs_git_to_know_the_file(self):
+        Path(".env").write_text("DEBUG=1\n")
+        self.assertEqual(self.run_keyguard(".env")[0], keyguard.EXIT_CLEAN)
+        self.git("add", ".env")
+        self.assertEqual(self.run_keyguard(".env")[0], keyguard.EXIT_FOUND)
+
     def test_history_finds_a_removed_secret_once(self):
         key = hex_key()
         Path("config.py").write_text(f"PRIVATE_KEY = '{key}'\n")
