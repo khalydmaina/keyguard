@@ -1,0 +1,5 @@
+- id: keyguard
+  name: keyguard
+  description: Block wallet keys, seed phrases and bot tokens from being committed.
+  entry: keyguard.py
+  language: script

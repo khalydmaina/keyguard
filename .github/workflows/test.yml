@@ -1,0 +1,43 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install cryptography
+      - run: python -m unittest discover -s tests -v
+
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: This repo is clean
+        uses: ./
+      - name: This repo's history is clean
+        uses: ./
+        with:
+          history: true
+      - name: Commit a generated key
+        run: |
+          python3 -c "import os; print('PRIVATE_KEY=0x' + os.urandom(32).hex())" > leak.txt
+          git add leak.txt
+      - name: A tracked key fails the scan
+        id: leak
+        continue-on-error: true
+        uses: ./
+      - name: Check the scan failed
+        run: test "${{ steps.leak.outcome }}" = "failure"

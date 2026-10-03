@@ -1,0 +1,22 @@
+name: Keyguard scan
+description: Fail the run when the repo holds wallet keys, seed phrases or bot tokens.
+branding:
+  icon: lock
+  color: yellow
+
+inputs:
+  history:
+    description: "Set to true to scan every past version of every file, not just the current ones. Needs fetch-depth: 0 on checkout."
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        KEYGUARD_HISTORY: ${{ inputs.history }}
+      run: |
+        if [ "$KEYGUARD_HISTORY" = "true" ]; then
+          python3 "$GITHUB_ACTION_PATH/keyguard.py" --history
+        else
+          python3 "$GITHUB_ACTION_PATH/keyguard.py" --all
+        fi
